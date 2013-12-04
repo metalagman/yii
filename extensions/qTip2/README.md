@@ -1,6 +1,6 @@
 # qTip2 component for Yii
 
-By Alexey Samoylov <alexey.samoylov@gmail.com>.
+By Alexey Samoylov (<alexey.samoylov@gmail.com>).
 Based on [Parcouss qTip2 extension](http://www.yiiframework.com/extension/qtip2).
 
 ## Requirements
@@ -8,7 +8,7 @@ Based on [Parcouss qTip2 extension](http://www.yiiframework.com/extension/qtip2)
 - **PHP 5.4**
 - **Yii 1.x**
 
-### Examples ### 
+### Examples
 
 Global component configuration example:
 
