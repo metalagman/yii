@@ -91,7 +91,6 @@ public function generateCalendarEvents()
 }
 ```
 ### Links
-
-<https://github.com/russianlagman/yii/tree/master/extensions/fullcalendar>
-<http://arshaw.com/fullcalendar/>
-<https://github.com/arshaw/fullcalendar/releases>
+* <https://github.com/russianlagman/yii/tree/master/extensions/fullcalendar>
+* <http://arshaw.com/fullcalendar/>
+* <https://github.com/arshaw/fullcalendar/releases>
