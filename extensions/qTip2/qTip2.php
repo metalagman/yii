@@ -31,7 +31,7 @@ class qTip2 extends CApplicationComponent
             $cssFile = $this->useMinified ? 'jquery.qtip.min.css' : 'jquery.qtip.css';
 
             if ($this->useCDN) {
-                $baseUrl = (Yii::app()->request->isSecureConnection ? 'https' : 'http') . '://cdnjs.cloudflare.com/ajax/libs/qtip2/'.$this->version;
+                $baseUrl = '//cdnjs.cloudflare.com/ajax/libs/qtip2/'.$this->version;
             } else {
                 $baseUrl = $am->publish(dirname(__FILE__).DIRECTORY_SEPARATOR.'assets'.DIRECTORY_SEPARATOR.$this->version);
             }
