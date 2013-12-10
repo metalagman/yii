@@ -70,4 +70,73 @@ class EFullCalendar extends CApplicationComponent
         $this->options['firstDay'] = 1;
     }
 
+    /**
+     * Merges two event arrays
+     * When events intersect, event from arr2 will be taken.
+     *
+     * @param array $arr1
+     * @param array $arr2
+     * @return array
+     */
+    public function mergeEvents($arr1, $arr2)
+    {
+        // removing intersections from $arr2
+        $arr1 = array_filter($arr1, function($v) use ($arr2) {
+            foreach ($arr2 as $item) {
+                if ($this->eventsIntersect($item, $v)) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        return array_values(array_merge($arr1, $arr2));
+    }
+
+    /**
+     * Checks if two events are intersecting
+     *
+     * @param array $e1
+     * @param array $e2
+     * @return bool
+     */
+    public function eventsIntersect($e1, $e2)
+    {
+        $result = false;
+
+        // creating datetime objects
+        $e1Start = $this->createDateTime($e1['start']);
+        $e1End = $this->createDateTime($e1['end']);
+        $e2Start = $this->createDateTime($e2['start']);
+        $e2End = $this->createDateTime($e2['end']);
+
+        // comparing datetime objects
+        if (
+            ($e2Start <= $e1Start and $e2End > $e1Start) // if intersecting through e1 start
+            or
+            ($e2Start < $e1End and $e2End >= $e1End) // if intersection through e1 end
+        ) {
+            $result = true;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Creates DateTime from string using timezone
+     *
+     * @param $dateStr
+     * @param $timeZone
+     * @return DateTime
+     */
+    protected function createDateTime($dateStr)
+    {
+        if (is_numeric($dateStr)) {
+            $timeZone = new DateTimeZone(Yii::app()->timeZone);
+            return new DateTime('@' . $dateStr, $timeZone);
+        }
+
+        return DateTime::createFromFormat(DateTime::ISO8601, $dateStr);
+    }
+
 }

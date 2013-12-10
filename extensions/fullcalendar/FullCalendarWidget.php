@@ -16,7 +16,7 @@ class FullCalendarWidget extends CWidget
 
     public function init()
     {
-        Yii::import('application.extensions.fullcalendar.EFullCalendar');
+        Yii::import('ext.fullcalendar.EFullCalendar');
         $this->component = Yii::app()->getComponent('fullcalendar') ? : new EFullCalendar;
         $this->component->init();
     }
