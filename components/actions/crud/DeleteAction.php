@@ -5,7 +5,11 @@
 
 class DeleteAction extends CAction
 {
-    public $modelClass, $successMessage, $errorMessage;
+    public
+        $modelClass,
+        $successMessage = false,
+        $errorMessage = false,
+        $redirectAction = 'index';
 
     public function run($id)
     {
@@ -25,11 +29,13 @@ class DeleteAction extends CAction
 
         if (!Yii::app()->request->isAjaxRequest) {
             if ($success) {
-                Yii::app()->user->setFlash('success', $this->successMessage ?: 'Success!');
+                if ($this->successMessage != false)
+                    Yii::app()->user->setFlash('success', $this->successMessage);
             } else {
-                Yii::app()->user->setFlash('error', $this->errorMessage ?: 'Error!');
+                if ($this->errorMessage != false)
+                    Yii::app()->user->setFlash('error', $this->errorMessage);
             }
-            $this->controller->redirect(['index']);
+            $this->controller->redirect([$this->redirectAction]);
         }
     }
 }
