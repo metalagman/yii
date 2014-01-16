@@ -30,17 +30,6 @@ abstract class FatActiveRecord extends CActiveRecord
         return parent::model($className);
     }
 
-    public function attributeLabels()
-    {
-        return array(
-            'id' => Yii::t('app', 'ID'),
-            'name' => Yii::t('app', 'Name'),
-            'datecreate' => Yii::t('app', 'Datecreate'),
-            'dateupdate' => Yii::t('app', 'Dateupdate'),
-            'status' => Yii::t('app', 'Status'),
-        );
-    }
-
     public function trySave($runValidation = true, $attributes = NULL)
     {
         $r = $this->save($runValidation, $attributes);
