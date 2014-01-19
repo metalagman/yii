@@ -10,7 +10,7 @@
  * {
  *     return [
  *         'ImageUpload' => [
- *             'class' => 'ext.behaviors.ImageUploadBehavior',
+ *             'class' => 'application.components.behaviors.ImageUploadBehavior',
  *             'attribute' => 'imageFile',
  *             'imagesDir' => Yii::app()->getBasePath() . '/../images/someModel/',
  *         ],
