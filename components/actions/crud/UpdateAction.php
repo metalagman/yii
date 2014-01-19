@@ -5,7 +5,14 @@
 
 class UpdateAction extends CAction
 {
-    public $modelClass, $successMessage, $errorMessage;
+    public
+        $modelClass,
+        $successMessage = false,
+        $errorMessage = false,
+        $redirectAction = 'view',
+        $redirectAppendId = true,
+        $useTransaction = true,
+        $viewFile = 'update'
 
     public function run($id)
     {
@@ -19,14 +26,31 @@ class UpdateAction extends CAction
             $model->loadPostData();
 
             if ($model->validate()) {
-                $model->trySave();
-                Yii::app()->user->setFlash('success', $this->successMessage ? : 'Success!');
-                $this->controller->redirect(['view', 'id' => $model->id]);
-            } else {
-                Yii::app()->user->setFlash('error', $this->errorMessage ? : 'Error!');
+                if ($this->useTransaction) {
+                    $transaction = $model->getDbConnection()->beginTransaction();
+                    try {
+                        $model->trySave();
+                        $transaction->commit();
+                    } catch (Exception $e) {
+                        $transaction->rollback();
+                        if ($this->errorMessage != false)
+                            Yii::app()->user->setFlash('error', $this->errorMessage);
+                        throw $e;
+                    }
+                } else {
+                    $model->trySave();
+                }
+
+                if ($this->successMessage != false)
+                    Yii::app()->user->setFlash('success', $this->successMessage);
+
+                $redirect = [$this->redirectAction];
+                if ($this->redirectAppendId)
+                    $redirect['id'] = $model->id;
+                $this->controller->redirect($redirect);
             }
         }
 
-        $this->controller->render('update', ['model' => $model]);
+        $this->controller->render($this->viewFile, ['model' => $model]);
     }
 }

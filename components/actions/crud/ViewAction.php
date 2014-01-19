@@ -5,12 +5,14 @@
 
 class ViewAction extends CAction
 {
-    public $modelClass;
+    public
+        $modelClass,
+        $viewFile = 'view';
 
     public function run($id)
     {
         $class = $this->modelClass;
         $model = $class::loadModel($id);
-        $this->controller->render('view', ['model' => $model]);
+        $this->controller->render($this->viewFile, ['model' => $model]);
     }
 }

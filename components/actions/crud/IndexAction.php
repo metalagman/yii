@@ -5,7 +5,9 @@
 
 class IndexAction extends CAction
 {
-    public $modelClass;
+    public
+        $modelClass,
+        $viewFile = 'index';
 
     public function run()
     {
@@ -16,7 +18,7 @@ class IndexAction extends CAction
         if ($params = Yii::app()->request->getParam($this->modelClass))
             $model->attributes = $params;
 
-        $this->controller->render('index', array(
+        $this->controller->render($this->viewFile, array(
             'model' => $model,
         ));
     }
