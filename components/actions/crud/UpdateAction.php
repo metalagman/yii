@@ -12,7 +12,7 @@ class UpdateAction extends CAction
         $redirectAction = 'view',
         $redirectAppendId = true,
         $useTransaction = true,
-        $viewFile = 'update'
+        $viewFile = 'update';
 
     public function run($id)
     {
