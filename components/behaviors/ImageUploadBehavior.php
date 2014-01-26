@@ -88,7 +88,9 @@ class ImageUploadBehavior extends FileUploadBehavior
             /** @var PhpThumb $thumb */
             $thumb = Yii::app()->phpThumb->create($path);
             $thumb->adaptiveResize($config['width'] , $config['height']);
-            $thumb->save(static::getThumbFilePath($this->attribute, $profile));
+            $thumbPath = static::getThumbFilePath($this->attribute, $profile);
+            @mkdir(pathinfo($thumbPath, PATHINFO_DIRNAME), 777, true);
+            $thumb->save($thumbPath);
         }
     }
 
