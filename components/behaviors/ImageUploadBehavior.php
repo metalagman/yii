@@ -1,127 +1,117 @@
 <?php
 /**
+ * Class ImageUploadBehavior
+ *
  * @author Alexey Samoylov <alexey.samoylov@gmail.com>
  *
- * Simply attach this behavior to your model
- * Usage example:
+ * Simply attach this behavior to your model, specify attribute and file path.
+ * You can use placeholders in path configuration:
+ *
+ * [[approot]] - application root
+ * [[webroot]] - web root
+ * [[model]] - model name
+ * [[id]] - model id
+ * [[basename]] - original filename with extension
+ * [[filename]] - original filename without extension
+ * [[extension]] - original extension
+ * [[baseurl]] - site base url
+ * [[profile]] - thumbnail profile name
  *
  * public
  * function behaviors()
  * {
  *     return [
  *         'ImageUpload' => [
- *             'class' => 'application.components.behaviors.ImageUploadBehavior',
- *             'attribute' => 'imageFile',
- *             'imagesDir' => Yii::app()->getBasePath() . '/../images/someModel/',
+ *              'class' => 'application.components.behaviors.ImageUploadBehavior',
+ *              'attribute' => 'image',
+ *              'thumbs' => [
+ *                  'thumb' => ['width' => 400, 'height' => 300],
+ *              ],
+ *              'filePath' => '[[webroot]]/images/[[model]]/[[id]].[[extension]]',
+ *              'fileUrl' => '/images/[[model]]/[[id]].[[extension]]',
+ *              'thumbPath' => '[[webroot]]/images/[[model]]/[[profile]]_[[id]].[[extension]]',
+ *              'thumbUrl' => '/images/[[model]]/[[profile]]_[[id]].[[extension]]',
  *         ],
  *     ];
  * }
 */
 
-class ImageUploadBehavior extends CActiveRecordBehavior
+class ImageUploadBehavior extends FileUploadBehavior
 {
-    /**
-     * @var string name of attribute which holds the attachment
-     */
     public $attribute = 'image';
 
-    /** @var array Size of thumb, Width, Height */
-    public $thumbSize = [ 400, 300 ];
-
     /**
-     * @var string where to store images
+     * @var array Thumbnail profiles, array of [width, height]
      */
-    public $imagesDir;
+    public $thumbs = [
+        'thumb' => ['width'=> 200, 'height' => 150],
+    ];
 
     /**
-     * @var CUploadedFile
+     * @var string Path template for thumbnails. Please use the [[profile]] placeholder.
      */
-    protected $file;
-    
-    protected $filePath;
-
-    public function afterValidate($event)
-    {
-        $this->file = CUploadedFile::getInstance($this->owner, $this->attribute);
-
-        if ($this->owner->isNewRecord) {
-            if ($this->file instanceof CUploadedFile) {
-                $this->owner->{$this->attribute} = $this->file->name;
-            } else {
-                $this->owner->addError($this->attribute, 'Invalid image');
-            }
-        }
-
-        parent::afterValidate($event);
-    }
-
-    public function beforeSave($event)
-    {
-        assert($this->owner->dbConnection->currentTransaction instanceof CDbTransaction);
-        assert(strlen($this->attribute)>0);
-        assert(strlen($this->imagesDir)>0);
-
-        // if updating photo we need to delete the old one
-        if (!$this->owner->isNewRecord && $this->file instanceof CUploadedFile) {
-            $class = get_class($this->owner);
-            $oldModel = $class::model()->findByPk($this->owner->id);
-            $oldModel->cleanFiles();
-        }
-
-        parent::beforeSave($event);
-    }
-
-    public function afterSave($event)
-    {
-        assert($this->owner->dbConnection->currentTransaction instanceof CDbTransaction);
-        assert(strlen($this->attribute)>0);
-        assert(strlen($this->imagesDir)>0);
-
-        // create image dir if not exists
-        @mkdir($this->imagesDir, 777, true);
-
-        if ($this->file instanceof CUploadedFile) {
-            $filePath = $this->imagesDir . $this->getImageFileName($this->owner);
-
-            if ($this->file->saveAs($filePath)) {
-                /** @var PhpThumb $thumb */
-                $thumb = Yii::app()->phpThumb->create($filePath);
-                $thumb->adaptiveResize($this->thumbSize[0] , $this->thumbSize[1]);
-                $thumb->save($this->imagesDir . $this->getThumbFileName($this->owner));
-            } else {
-                throw new Exception('File saving error');
-            }
-        }
-
-        parent::afterSave($event);
-    }
-
-    public function beforeDelete($event)
-    {
-        $this->cleanFiles();
-        return parent::beforeDelete($event);
-    }
+    public $thumbPath = '[[webroot]]/images/[[profile]]_[[id]].[[extension]]';
 
     /**
+     * @var string Url template for thumbnails
+     */
+    public $thumbUrl = '/images/[[profile]]_[[id]].[[extension]]';
+
+    public $filePath = '[[webroot]]/images/[[id]].[[extension]]';
+    public $fileUrl = '/images/[[id]].[[extension]]';
+
+    /**
+     * @param string $path
+     * @param CActiveRecord $model
+     * @param string $attribute
+     * @param string $profile
      * @return string
      */
-    public function getImageFileName()
+    public static function resolveProfilePath($path, CActiveRecord $model, $attribute, $profile)
     {
-        return $this->owner->id . '.' . strtolower(pathinfo($this->owner->{$this->attribute}, PATHINFO_EXTENSION));
-    }
-
-    /**
-     * @return string
-     */
-    public function getThumbFileName()
-    {
-        return $this->owner->id . '_thumb.' . strtolower(pathinfo($this->owner->{$this->attribute}, PATHINFO_EXTENSION));
+        $path = static::resolvePath($path, $model, $attribute);
+        $path = str_replace('[[profile]]', $profile, $path);
+        return $path;
     }
 
     public function cleanFiles()
     {
-        @unlink($this->imagesDir . $this->getImageFileName());
-        @unlink($this->imagesDir . $this->getThumbFileName());
+        parent::cleanFiles();
+        foreach(array_keys($this->thumbs) as $profile) {
+            @unlink($this->getThumbFilePath($this->attribute, $profile));
+        }
+    }
+
+    protected function afterFileSave($path)
+    {
+        foreach ($this->thumbs as $profile=>$config) {
+            /** @var PhpThumb $thumb */
+            $thumb = Yii::app()->phpThumb->create($path);
+            $thumb->adaptiveResize($config['width'] , $config['height']);
+            $thumb->save(static::getThumbFilePath($this->attribute, $profile));
+        }
+    }
+
+    /**
+     * @param string $attribute
+     * @param string $profile
+     * @return string
+     */
+    public function getThumbFilePath($attribute, $profile = 'thumb')
+    {
+        $path = $this->getPathTemplate('thumbPath', $attribute);
+        return static::resolveProfilePath($path, $this->owner, $attribute, $profile);
+    }
+
+    /**
+     * @param string $attribute
+     * @param string $profile
+     * @return string
+     */
+    public function getThumbFileUrl($attribute, $profile = 'thumb')
+    {
+        $path = $this->getPathTemplate('thumbUrl', $attribute);
+        return static::resolveProfilePath($path, $this->owner, $attribute, $profile);
     }
 
 }
