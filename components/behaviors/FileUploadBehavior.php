@@ -84,6 +84,11 @@ class FileUploadBehavior extends CActiveRecordBehavior
         static::$instances[get_class($this->owner)][$this->attribute] = $this;
     }
 
+    public function afterFind($event)
+    {
+        static::$instances[get_class($this->owner)][$this->attribute] = $this;
+    }
+
     public function afterValidate($event)
     {
         $this->file = CUploadedFile::getInstance($this->owner, $this->attribute);
@@ -107,7 +112,6 @@ class FileUploadBehavior extends CActiveRecordBehavior
             $class = get_class($this->owner);
             /** @var CActiveRecord $oldModel */
             $oldModel = $class::model()->findByPk($this->owner->id);
-            $oldModel->raiseEvent('onAfterConstruct', $event);
             $oldModel->cleanFiles();
         }
 
