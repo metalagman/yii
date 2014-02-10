@@ -70,11 +70,15 @@ abstract class FatActiveRecord extends CActiveRecord
         return $r;
     }
 
-    public function loadPostData()
+    public function loadPostData($attributes = null)
     {
         $class = get_class($this);
-        if (isset($_POST[$class]))
-            $this->setAttributes($_POST[$class]);
+        if (isset($_POST[$class])) {
+            $postData = $_POST[$class];
+            if (is_array($attributes))
+                $postData = array_intersect_key($postData, array_flip($attributes));
+            $this->setAttributes($postData);
+        }
     }
 
     public function safeSetAttributes($attributes)
