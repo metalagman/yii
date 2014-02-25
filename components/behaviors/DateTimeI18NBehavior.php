@@ -1,8 +1,8 @@
 <?php
+
 /**
  * @author Alexey Samoylov <alexey.samoylov@gmail.com>
  */
-
 class DateTimeI18NBehavior extends CActiveRecordBehavior
 {
     const DATE = 'date';
@@ -25,7 +25,7 @@ class DateTimeI18NBehavior extends CActiveRecordBehavior
     {
         $this->initLocale();
 
-        foreach($event->sender->tableSchema->columns as $columnName => $column) {
+        foreach ($event->sender->tableSchema->columns as $columnName => $column) {
             if ($this->applicable($columnName, $column->dbType, $event->sender->$columnName)) {
                 $event->sender->$columnName = Yii::app()->dateFormatter->format($this->formats[$column->dbType][0],
                     CDateTimeParser::parse($event->sender->$columnName, $this->formats[$column->dbType][1])
@@ -41,7 +41,7 @@ class DateTimeI18NBehavior extends CActiveRecordBehavior
     {
         $this->initLocale();
 
-        foreach($event->sender->tableSchema->columns as $columnName => $column){
+        foreach ($event->sender->tableSchema->columns as $columnName => $column) {
             if ($this->applicable($columnName, $column->dbType, $event->sender->$columnName)) {
                 $event->sender->$columnName = Yii::app()->dateFormatter->format($this->formats[$column->dbType][1],
                     CDateTimeParser::parse($event->sender->$columnName, $this->formats[$column->dbType][0])
@@ -65,10 +65,12 @@ class DateTimeI18NBehavior extends CActiveRecordBehavior
      */
     protected function applicable($columnName, $columnType, $columnValue)
     {
-        if (!(is_string($columnValue) && strlen($columnValue)>0)) return false;
-        if (!array_key_exists($columnType, $this->formats)) return false;
-        if (is_array($this->attributes && !in_array($columnName, $this->attributes))) return false;
-        if (is_array($this->exceptAttributes && in_array($columnName, $this->exceptAttributes))) return false;
-        return true;
+        return !(
+            !is_string($columnValue)
+            || strlen($columnValue) == 0
+            || !array_key_exists($columnType, $this->formats)
+            || is_array($this->attributes) && !in_array($columnName, $this->attributes)
+            || is_array($this->exceptAttributes) && in_array($columnName, $this->exceptAttributes)
+        );
     }
 }
