@@ -23,7 +23,7 @@
  * {
  *     return [
  *         'FileUpload' => [
- *             'class' => 'application.components.behaviors.UploadBehavior',
+ *             'class' => 'application.components.behaviors.FileUploadBehavior',
  *             'attribute' => 'fileUpload',
  *             'filePath' => '[[webroot]]/uploads/[[id]].[[extension]]',
  *             'fileUrl' => '/uploads/[[id]].[[extension]]',
